@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %} {{ event.name }} Qualification Matches {% endblock %}
+
+
+{% block content %}
+    <div class="m-5 text-center">
+        <h1>{{ event.name }} Qualification Matches</h1>
+    </div>
+
+    <table class="table table-hover">
+            <tr>
+                <th scope="col">Match</th>
+                <th scope="col">Time</th>
+                <th scope="col">Red 1</th>
+                <th scope="col">Red 2</th>
+                <th scope="col">Blue 1</th>
+                <th scope="col">Blue 2</th>
+                <th scope="col">Red Score</th>
+                <th scope="col">Blue Score</th>
+            </tr>
+    {% for match in matches %}
+        <tr>
+            <td>{{ match.phase }} {{ match.number }}</td>
+            <td>{{ match.scheduledStartTime }}</td>
+            {% if match.redWin %}
+                <td class="fw-bold">{{ match.red1.number }}</td>
+                <td class="fw-bold">{{ match.red2.number }}</td>
+            {% else %}
+                <td>{{ match.red1.number }}</td>
+                <td>{{ match.red2.number }}</td>
+            {% endif %}
+            {% if match.blueWin %}
+                <td class="fw-bold">{{ match.blue1.number }}</td>
+                <td class="fw-bold">{{ match.blue2.number }}</td>
+            {% else %}
+                <td>{{ match.blue1.number }}</td>
+                <td>{{ match.blue2.number }}</td>
+            {% endif %}
+        {% if match.redScore %}
+            {% if match.redWin %}
+                            <td class="fw-bold">{{ match.redScore }}</td>
+                {% else %}
+                            <td>{{ match.redScore }}</td>
+                {% endif %}
+            {% if match.blueWin %}
+                            <td class="fw-bold">{{ match.blueScore }}</td>
+                {% else %}
+                            <td>{{ match.blueScore }}</td>
+                {% endif %}
+
+
+        {% else %}
+            <td></td>
+            <td></td>
+        {% endif %}
+        </tr>
+    {% endfor %}
+
+
+    </table>
+
+{% endblock %}

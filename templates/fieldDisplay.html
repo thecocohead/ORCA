@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %} Field Display {% endblock %}
+
+{% block content %}
+
+    <h1>
+        <div id="currentMatch" class = "text-center fw-bold display-3">
+        <span id="matchPhase"></span>
+        <span id="matchNumber"></span>
+        </div><hr>
+        <br>
+        <div id="timer-display" class="text-center fw-bold display-3 bg-warning-subtle">0s</div>
+    </div>
+    </h1>
+    <div id="status" class="container-fluid h-75 w-100">
+
+        <div class="row h-50">
+            <div class="col m-3 bg-info-subtle">
+                <h1>Blue Alliance</h1>
+                <h2 id="blue1"></h2>
+                <h2 id="blue2"></h2>
+            </div>
+            <div class="col m-3 text-end bg-danger-subtle">
+                <h1>Red Alliance</h1>
+                <h2 id="red1"></h2>
+                <h2 id="red2"></h2>
+            </div>
+        </div>
+        <div class="row h-50">
+            <div class="col m-3 display-1 fw-bold text-center bg-info-subtle">
+                <p id="bluescore">0</p>
+            </div>
+            <div class="col m-3 display-1 fw-bold text-center bg-danger-subtle">
+                <p id="redscore">0</p>
+            </div>
+        </div>
+    </div>
+
+
+
+<script>
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/timer/');
+
+    const startMatchSound = new Audio('/static/sounds/start_match.mp3');
+    const endMatchSound = new Audio('/static/sounds/end_match.mp3');
+
+    socket.onopen = function(e) {
+    socket.send(JSON.stringify({
+        'action': 'DISPLAY_JOIN',
+        'data' : {
+            'eventCode': '{{ event.code }}',
+            'eventSeason': '{{ event.season }}'
+        }
+    }))
+    }
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.action === 'MATCH_START') {
+            startMatchSound.play();
+            runCountdown(150);
+        }
+        if (data.action === 'CURRENT_MATCH') {
+            const phaseDisplay = document.getElementById('matchPhase');
+            const matchNumberDisplay = document.getElementById('matchNumber');
+            const red1Display = document.getElementById('red1');
+            const red2Display = document.getElementById('red2');
+            const blue1Display = document.getElementById('blue1');
+            const blue2Display = document.getElementById('blue2');
+
+            red1Display.innerText = data.data.red1;
+            red2Display.innerText = data.data.red2;
+            blue1Display.innerText = data.data.blue1;
+            blue2Display.innerText = data.data.blue2;
+            phaseDisplay.innerText = data.data.phase;
+            matchNumberDisplay.innerText = data.data.number;
+        }
+        if (data.action === 'SCORE_UPDATE') {
+            console.log(data.data);
+            const redScoreDisplay = document.getElementById('redscore');
+            const blueScoreDisplay = document.getElementById('bluescore');
+            redScoreDisplay.innerText = data.data.redScore;
+            blueScoreDisplay.innerText = data.data.blueScore;
+        }
+        if (data.action === 'STATE_UPDATE') {
+            console.log(data.data);
+            const redScoreDisplay = document.getElementById('redscore');
+            const blueScoreDisplay = document.getElementById('bluescore');
+            if (data.data.isMatchOngoing === false) {
+                redScoreDisplay.innerText = 0;
+                blueScoreDisplay.innerText = 0;
+            }
+        }
+    };
+
+    function startMatch() {
+        socket.send(JSON.stringify({
+            'action': 'MATCH_START'
+        }));
+    }
+
+    function assessFoul(team, severity) {
+        socket.send(JSON.stringify({
+            'action': 'FOUL',
+            'team': team,
+            'severity': severity
+        }));
+    }
+
+    function runCountdown(seconds) {
+        let remaining = seconds;
+        const display = document.getElementById('timer-display');
+
+        const interval = setInterval(() => {
+            display.innerText = remaining + "s";
+            remaining--;
+            if (remaining < 0) {
+                clearInterval(interval);
+                display.innerText = "0s";
+                endMatchSound.play();
+            }
+        }, 1000);
+    }
+</script>
+
+{% endblock %}

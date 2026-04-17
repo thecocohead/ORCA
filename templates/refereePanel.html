@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+        <div id="currentMatch" class = "text-center fw-bold">
+                <span id="matchPhase"></span>
+                <span id="matchNumber"></span>
+                (<span id="timer-display">Scheduled</span>)
+        </div>
+
+<body>
+    <div class="align-middle mx-auto bg-dark vh-100">
+        <div id="startmatch" class="h-75 w-100">
+            <button onclick="startMatch()" class="btn btn-success w-100 h-100"><span class="display-1 fw-bold">Start<br>Match</span></button>
+        </div>
+
+        <div id="review" class="container-fluid h-75 w-100">
+            <button onclick="toFoulEntry()" class="btn btn-secondary w-100" id="foulButton">Foul Entry</button>
+            <div class="row m-3 fw-bold">
+                <div class="col">
+                </div>
+                <div class="col">
+                    Blue
+                </div>
+                <div class="col">
+                    Red
+                </div>
+            </div>
+            <div class="row m-3">
+                <div class="col fw-bold">
+                    Artifacts
+                </div>
+                <div class="col">
+                    <span id="blueArtifacts" class="">0</span>
+                </div>
+                <div class="col">
+                    <span id="redArtifacts" class="">0</span>
+                </div>
+            </div>
+            <div class="row m-3">
+                <div class="col fw-bold">
+                    Fouls
+                </div>
+                <div class="col">
+                    Minor: <span id="blueMinorFouls" class="">0</span> Major: <span id="blueMajorFouls" class="">0</span>
+                </div>
+                <div class="col">
+                    Minor: <span id="redMinorFouls" class="">0</span> Major: <span id="redMajorFouls" class="">0</span>
+                </div>
+            </div>
+            <div class="row m-3">
+                <div class="col fw-bold">
+                    Endgame
+                </div>
+                <div class="col">
+                    <i class="bi bi-square" id="blue1endgame"></i>  <i class="bi bi-square" id="blue2endgame"></i>
+                </div>
+                <div class="col">
+                    <i class="bi bi-square" id="red1endgame"></i>  <i class="bi bi-square" id="red2endgame"></i>
+                </div>
+            </div>
+            <button onclick="commit()" class="btn btn-success w-100" id="endgameButton">Commit & Post Final Scores</button>
+        </div>
+
+        <div id="endgame" class="container-fluid h-75 w-100">
+            <button onclick="toFoulEntry()" class="btn btn-secondary w-100" id="foulButton">Foul Entry</button>
+            <div class="row m-3">
+                <div class="col-3 text-center d-flex align-items-center justify-content-center">
+                    <span id="blue1Team" class="display-3">Blue 1</span>
+                </div>
+                <div class="col-9">
+                    <button onclick="updateEndgame('blue1')" class="btn btn-primary w-100 h-100"><span class="display-6" id="blue1Button">None</span></button>
+                </div>
+            </div>
+            <div class="row m-3">
+                <div class="col-3 d-flex align-items-center justify-content-center">
+                    <span id="blue2Team" class="display-3">Blue 2</span>
+                </div>
+                <div class="col-9">
+                    <button onclick="updateEndgame('blue2')" class="btn btn-primary w-100 h-100"><span class="display-6" id="blue2Button">None</span></button>
+                </div>
+            </div>
+            <div class="row m-3">
+                <div class="col-3 d-flex align-items-center justify-content-center">
+                    <span id="red1Team" class="display-3">Red 1</span>
+                </div>
+                <div class="col-9">
+                    <button onclick="updateEndgame('red1')" class="btn btn-danger w-100 h-100"><span class="display-6" id="red1Button">None</span></button>
+                </div>
+            </div>
+            <div class="row m-3">
+                <div class="col-3 d-flex align-items-center justify-content-center">
+                    <span id="red2Team" class="display-3">Red 2</span>
+                </div>
+                <div class="col-9">
+                    <button onclick="updateEndgame('red2')" class="btn btn-danger w-100 h-100"><span class="display-6" id="red2Button">None</span></button>
+                </div>
+            </div>
+        </div>
+
+    <div id="foulEntry" class="container-fluid h-75 w-100">
+
+        <div class="row">
+            <div class="col-3">
+                <button onclick="toReview()" class="btn btn-secondary w-100" id="reviewButton">Review</button>
+            </div>
+            <div class="col-6">
+                <button onclick="updateNegateMode()" class="btn btn-warning w-100" id="subtractbutton">Subtract?</button>
+            </div>
+            <div class="col-3">
+                <button onclick="toEndgame()" class="btn btn-secondary w-100" id="endgameButton">Endgame</button>
+            </div>
+        </div>
+
+
+        <div class="row h-50">
+            <div class="col m-3">
+                <button onclick="assessFoul('blue', 'minor')" class="btn btn-primary w-100 h-100" id="bi"><h1><span id="negateModeIndicator-bi"></span>Blue MINOR</h1></button>
+            </div>
+            <div class="col m-3">
+                <button onclick="assessFoul('red', 'minor')" class="btn btn-danger w-100 h-100" id="ri"><h1><span id="negateModeIndicator-ri"></span>Red MINOR</h1></button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <span id="blueMinorCount" class="display-7 fw-bold"></span>
+                <span id="blueMajorCount" class="display-7 fw-bold float-end"></span>
+            </div>
+            <div class="col">
+                <span id="redMinorCount" class="display-7 fw-bold"></span>
+                <span id="redMajorCount" class="display-7 fw-bold float-end"></span>
+            </div>
+        </div>
+        <div class="row h-50">
+            <div class="col m-3">
+                <button onclick="assessFoul('blue', 'major')" class="btn btn-primary w-100 h-100" id="bm"><h1><span id="negateModeIndicator-bm"></span>Blue MAJOR</h1></button>
+            </div>
+            <div class="col m-3">
+                <button onclick="assessFoul('red', 'major')" class="btn btn-danger w-100 h-100" id="rm"><h1><span id="negateModeIndicator-rm"></span>Red MAJOR</h1></button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+<script>
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/timer/');
+    const body = document.querySelector('body');
+    var negateMode = false;
+
+    updateNegateMode = function() {
+        negateMode = !negateMode;
+        document.getElementById('negateModeIndicator-bm').textContent = negateMode ? 'SUBTRACT ' : '';
+        document.getElementById('negateModeIndicator-rm').textContent = negateMode ? 'SUBTRACT ' : '';
+        document.getElementById('negateModeIndicator-bi').textContent = negateMode ? 'SUBTRACT ' : '';
+        document.getElementById('negateModeIndicator-ri').textContent = negateMode ? 'SUBTRACT ' : '';
+
+        const rmbutton = document.getElementById('rm');
+        const bmbutton = document.getElementById('bm');
+        const ributton = document.getElementById('ri');
+        const biutton = document.getElementById('bi');
+        const subtractbutton = document.getElementById('subtractbutton');
+
+        if(negateMode) {
+            rmbutton.classList.remove('btn-danger');
+            rmbutton.classList.add('btn-outline-danger');
+            ributton.classList.remove('btn-danger');
+            ributton.classList.add('btn-outline-danger');
+            bmbutton.classList.remove('btn-primary');
+            bmbutton.classList.add('btn-outline-primary');
+            biutton.classList.remove('btn-primary');
+            biutton.classList.add('btn-outline-primary');
+            subtractbutton.classList.remove('btn-warning');
+            subtractbutton.classList.add('btn-outline-warning');
+        } else {
+            rmbutton.classList.remove('btn-outline-danger');
+            rmbutton.classList.add('btn-danger');
+            ributton.classList.remove('btn-outline-danger');
+            ributton.classList.add('btn-danger');
+            bmbutton.classList.remove('btn-outline-primary');
+            bmbutton.classList.add('btn-primary');
+            biutton.classList.remove('btn-outline-primary');
+            biutton.classList.add('btn-primary');
+            subtractbutton.classList.remove('btn-outline-warning');
+            subtractbutton.classList.add('btn-warning');
+        }
+    }
+
+    socket.onopen = function(e) {
+        socket.send(JSON.stringify({
+            'action': 'REFEREE_JOIN',
+            'data' : {
+                'eventCode': '{{ event.code }}',
+                'eventSeason': '{{ event.season }}'
+            }
+        }))
+    }
+
+    document.onload = function() {
+        body.requestFullscreen();
+    }
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.action === 'MATCH_START') {
+            runCountdown(150);
+        }
+        if (data.action === 'CURRENT_MATCH') {
+            const phaseDisplay = document.getElementById('matchPhase');
+            const matchNumberDisplay = document.getElementById('matchNumber');
+            phaseDisplay.innerText = data.data.phase;
+            matchNumberDisplay.innerText = data.data.number;
+        }
+        if (data.action === 'FOUL_UPDATE') {
+            const redMinorCount = document.getElementById('redMinorCount');
+            const redMajorCount = document.getElementById('redMajorCount');
+            const blueMinorCount = document.getElementById('blueMinorCount');
+            const blueMajorCount = document.getElementById('blueMajorCount');
+            const reviewBlueMinor = document.getElementById('blueMinorFouls');
+            const reviewBlueMajor = document.getElementById('blueMajorFouls');
+            const reviewRedMinor = document.getElementById('redMinorFouls');
+            const reviewRedMajor = document.getElementById('redMajorFouls');
+
+            reviewBlueMinor.innerText = data.data.blueMinors;
+            reviewBlueMajor.innerText = data.data.blueMajors;
+            reviewRedMinor.innerText = data.data.redMinors;
+            reviewRedMajor.innerText = data.data.redMajors;
+            redMinorCount.innerText = "Minor: " + data.data.redMinors;
+            redMajorCount.innerText = "Major: " + data.data.redMajors;
+            blueMinorCount.innerText = "Minor: " + data.data.blueMinors;
+            blueMajorCount.innerText = "Major: " + data.data.blueMajors;
+            console.log(data.data);
+        }
+        if (data.action === 'STATE_UPDATE') {
+            console.log(data.data);
+            const startmatch = document.getElementById('startmatch');
+            const foulEntry = document.getElementById('foulEntry');
+            const endgame = document.getElementById('endgame');
+            const review = document.getElementById('review');
+
+            if(data.data.isMatchOngoing) {
+                startmatch.style.display = 'none';
+                endgame.style.display = 'none';
+                review.style.display = 'none';
+                foulEntry.style.display = 'block';
+            } else {
+                startmatch.style.display = 'block';
+                endgame.style.display = 'none';
+                foulEntry.style.display = 'none';
+                review.style.display = 'none';
+            }
+
+            // endgame team numbers
+            const blue1 = document.getElementById('blue1Team');
+            const blue2 = document.getElementById('blue2Team');
+            const red1 = document.getElementById('red1Team');
+            const red2 = document.getElementById('red2Team');
+            blue1.innerText = data.data.blue1;
+            blue2.innerText = data.data.blue2;
+            red1.innerText = data.data.red1;
+            red2.innerText = data.data.red2;
+        }
+        if (data.action === 'ENDGAME_STATE') {
+            const blue1Button = document.getElementById('blue1Button');
+            const blue2Button = document.getElementById('blue2Button');
+            const red1Button = document.getElementById('red1Button');
+            const red2Button = document.getElementById('red2Button');
+
+            const blue1endgame = document.getElementById('blue1endgame');
+            const blue2endgame = document.getElementById('blue2endgame');
+            const red1endgame = document.getElementById('red1endgame');
+            const red2endgame = document.getElementById('red2endgame');
+
+            blue1endgame.classList.remove('bi-square');
+            blue1endgame.classList.remove('bi-square-fill');
+            blue1endgame.classList.remove('bi-square-half');
+
+            blue2endgame.classList.remove('bi-square');
+            blue2endgame.classList.remove('bi-square-fill');
+            blue2endgame.classList.remove('bi-square-half');
+
+            red1endgame.classList.remove('bi-square');
+            red1endgame.classList.remove('bi-square-fill');
+            red1endgame.classList.remove('bi-square-half');
+
+            red2endgame.classList.remove('bi-square');
+            red2endgame.classList.remove('bi-square-fill');
+            red2endgame.classList.remove('bi-square-half');
+
+            if(data.data.blue1 === 0) {
+                blue1Button.innerText = "None";
+                blue1endgame.classList.add('bi-square');
+            } else if (data.data.blue1 === 1) {
+                blue1Button.innerText = "Partial";
+                blue1endgame.classList.add('bi-square-half');
+            } else {
+                blue1Button.innerText = "Full";
+                blue1endgame.classList.add('bi-square-fill');
+            }
+            if(data.data.blue2 === 0) {
+                blue2Button.innerText = "None";
+                blue2endgame.classList.add('bi-square');
+            } else if (data.data.blue2 === 1) {
+                blue2Button.innerText = "Partial";
+                blue2endgame.classList.add('bi-square-half');
+            } else {
+                blue2Button.innerText = "Full";
+                blue2endgame.classList.add('bi-square-fill');
+            }
+            if(data.data.red1 === 0) {
+                red1Button.innerText = "None";
+                red1endgame.classList.add('bi-square');
+            } else if (data.data.red1 === 1) {
+                red1Button.innerText = "Partial";
+                red1endgame.classList.add('bi-square-half');
+            } else {
+                red1Button.innerText = "Full";
+                red1endgame.classList.add('bi-square-fill');
+            }
+            if(data.data.red2 === 0) {
+                red2Button.innerText = "None";
+                red2endgame.classList.add('bi-square');
+            } else if (data.data.red2 === 1) {
+                red2Button.innerText = "Partial";
+                red2endgame.classList.add('bi-square-half');
+            } else {
+                red2Button.innerText = "Full";
+                red2endgame.classList.add('bi-square-fill');
+            }
+        }
+    };
+
+    function startMatch() {
+        socket.send(JSON.stringify({
+            'action': 'MATCH_START',
+            'data' : {
+                'eventCode': '{{ event.code }}',
+                'eventSeason': '{{ event.season }}'
+            }
+        }))
+    }
+
+    function toEndgame() {
+        const foulEntry = document.getElementById('foulEntry');
+        const endgame = document.getElementById('endgame');
+        const review = document.getElementById('review');
+        review.style.display = 'none';
+        foulEntry.style.display = 'none';
+        endgame.style.display = 'block';
+    }
+
+    function toFoulEntry() {
+        const foulEntry = document.getElementById('foulEntry');
+        const endgame = document.getElementById('endgame');
+        const review = document.getElementById('review');
+        review.style.display = 'none';
+        foulEntry.style.display = 'block';
+        endgame.style.display = 'none';
+    }
+
+    function toReview() {
+        const foulEntry = document.getElementById('foulEntry');
+        const endgame = document.getElementById('endgame');
+        const review = document.getElementById('review');
+        foulEntry.style.display = 'none';
+        endgame.style.display = 'none';
+        review.style.display = 'block';
+    }
+
+    function updateEndgame(team) {
+        socket.send(JSON.stringify({
+            'action': 'ENDGAME_UPDATE',
+            'data': {
+                'eventCode': '{{ event.code }}',
+                'eventSeason': '{{ event.season }}',
+                'team': team
+            }
+        }));
+    }
+
+    function assessFoul(team, severity) {
+        socket.send(JSON.stringify({
+            'action': 'FOUL',
+            'data': {
+                'eventCode': '{{ event.code }}',
+                'eventSeason': '{{ event.season }}',
+                'team': team,
+                'severity': severity,
+                'negated': negateMode
+            }
+        }));
+        if(negateMode) {
+            updateNegateMode();
+        }
+    }
+
+    function commit() {
+        socket.send(JSON.stringify({
+            'action': 'COMMIT',
+            'data': {
+                'eventCode': '{{ event.code }}',
+                'eventSeason': '{{ event.season }}'
+            }
+        }));
+    }
+
+    function runCountdown(seconds) {
+        let remaining = seconds;
+        const display = document.getElementById('timer-display');
+
+        const interval = setInterval(() => {
+            display.innerText = remaining + "s";
+            remaining--;
+            if (remaining < 0) {
+                clearInterval(interval);
+                display.innerText = "Completed";
+            }
+        }, 1000);
+    }
+
+
+</script>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %} {{ event.name }} {% endblock %}
+
+{% block content %}
+    <div class="text-center m-5">
+        <h1>{{ event.name }}</h1>
+    </div>
+
+    <div class="">
+        <h2 class="m-3">Event Information</h2>
+        <div>
+        <table class="table">
+            <tr>
+                <th scope="col">Event Name</th>
+                <td>{{ event.name }}</td>
+            </tr>
+            <tr>
+                <th scope="col">Event Code</th>
+                <td>{{ event.code }}</td>
+            </tr>
+            {% if event.multiDay %}
+                <tr>
+                            <th scope="col">Start Date</th>
+                <td>{{ event.startDate }}</td>
+
+                </tr>
+                            <th scope="col">End Date</th>
+                <td>{{ event.endDate }}</td>
+            {% else %}
+                <tr>
+                <th scope="col">Date</th>
+                <td>{{ event.startDate }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th scope="col">Location</th>
+                <td>{{ event.location }}</td>
+            </tr>
+
+
+        </table>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-3">
+        {% if event.match_set.count > 0 %}
+            <div class="col">
+                <div class="card h-100 border-0">
+                    <a href="/event/{{ event.season }}/{{ event.code }}/schedule" class="btn btn-primary m-2"><i class="bi bi-calendar-fill"></i> Qualification Schedule</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <h2 class="m-3">Registered Teams ({{ teams.count }})</h2>
+        <div class="row row-cols-1 row-cols-md-5 g-3">
+                {% for team in teams %}
+                    <div class="col">
+                        <div class="card h-100">
+                            <h5 class="card-title m-2 text-center">{{ team.name }} ({{ team.number }})</h5>
+                            <p class="card-text m-2">
+                                <b>Contact:</b> {{ team.contact.username }} <br>
+                                <b>Location:</b> {{ team.location }}
+                            </p>
+                            <a href="/team/{{ team.number }}" class="btn btn-primary m-2"><i class="bi bi-people-fill"></i> Open Team</a>
+                        </div>
+                    </div>
+                {% endfor %}
+        </div>
+    </div>
+
+    {% if isAdmin or isReferee %}
+        <h2 class="m-3">Event Administration</h2>
+        <div class="row row-cols-1 row-cols-md-5 g-3">
+        {% if isAdmin %}
+            <div class="col">
+                <div class="card h-100 border-0">
+                    <a href="/event/{{ event.season }}/{{ event.code }}/admin" class="btn btn-primary m-2"><i class="bi bi-person-fill-gear"></i> Admin Panel</a>
+                </div>
+            </div>
+        {% endif %}
+        <div class="col">
+            <div class="card h-100 border-0">
+                <a href="/event/{{ event.season }}/{{ event.code }}/referee" class="btn btn-primary m-2"><i class="bi bi-flag-fill"></i>  Referee Panel</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-0">
+                <a href="/event/{{ event.season }}/{{ event.code }}/field" class="btn btn-primary m-2"><i class="bi bi-flag-fill"></i>  Field Display</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+{% endblock %}

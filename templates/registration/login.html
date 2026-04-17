@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %} Teams {% endblock %}
+
+{% block content %}
+    <div class="text-center m-5">
+        <h1>Login</h1>
+    </div>
+
+<form action="" method="post" novalidate>
+  {% csrf_token %}
+  {% load crispy_forms_tags %}
+  {{ form|crispy }}
+  <button type="submit" class="btn btn-primary">Log In</button>
+</form>
+
+{% endblock %}

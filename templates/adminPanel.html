@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %} {{ event.code }} Administration {% endblock %}
+
+
+{% block content %}
+    <div class="m-5 text-center">
+        <h1>{{ event.season }}{{ event.code }} Admin Panel</h1>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-5 g-3">
+        <div class="col">
+            <div class="card h-100 border-0">
+                {% if event.registrationLocked %}<a href="/event/{{ event.season }}/{{ event.code }}/admin/lock" class="btn btn-secondary m-2"><i class="bi bi-unlock-fill"></i> Unlock Registrations</a>
+                {% else %}<a href="/event/{{ event.season }}/{{ event.code }}/admin/lock" class="btn btn-danger m-2"><i class="bi bi-lock-fill"></i> Lock Registrations</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-0">
+                {% if matches.count == 0 %}
+                <a href="/event/{{ event.season }}/{{ event.code }}/admin/teams" class="btn btn-primary m-2"><i class="bi bi-person-fill-gear"></i> Modify Registrations</a>
+                    {% else %}
+                    <a href="/event/{{ event.season }}/{{ event.code }}/admin/teams" class="btn btn-secondary m-2"><i class="bi bi-person-fill-gear"></i> Modify Registrations</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-0">
+                <a href="/event/{{ event.season }}/{{ event.code }}/admin/schedule" class="btn btn-primary m-2"><i class="bi bi-calendar-event-fill"></i> Generate Match Schedule</a>
+            </div>
+        </div>
+    </div>
+
+    <br>
+    <br>
+
+    <div class="container my-4">
+        <!-- Step 1: Set Matches Per Team -->
+        <div class="card mb-4 border-danger">
+            <div class="card-header bg-danger">
+                <h4>Danger Zone</h4>
+                <p><i>These actions are irreversable and not typically used.</i></p>
+            </div>
+            <div class="card-body row-cols-md-5">
+                <div class="col">
+                    <div class="card h-100 border-0">
+                        <a href="/event/{{ event.season }}/{{ event.code }}/admin/schedule/delete" class="btn btn-danger m-2"><i class="bi bi-trash-fill"></i> Dump Matches & Results</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %} Teams {% endblock %}
+
+{% block content %}
+<h1>Team Listing</h1>
+
+<div class="row row-cols-1 row-cols-md-5 g-3" >
+{% for team in teams %}
+    <div class="col">
+        <div class="card h-100">
+            <h5 class="card-title m-2 text-center">{{ team.name }} ({{ team.number }})</h5>
+                <p class="card-text m-2">
+                    <b>Location:</b> {{ team.location }} <br>
+                    <b>Events:</b> {{ team.event_teams.count }} <br>
+                    <b>Contact:</b> {{ team.contact.username }}
+                </p>
+            <a href="/team/{{ team.number }}" class="btn btn-primary m-2"><i class="bi bi-people-fill"></i> Open Team</a>
+        </div>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

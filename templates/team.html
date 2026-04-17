@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %} Team {{ team.number }} {% endblock %}
+
+{% block content %}
+    <div class="text-center m-5">
+        <h1>Team {{ team.number }}</h1>
+    </div>
+    <div class="">
+        <div>
+            <table class="table">
+                <tr>
+                    <th scope="col">Name</th>
+                    <td>{{ team.name }}</td>
+                </tr>
+                <tr>
+                    <th scope="col">Location</th>
+                    <td>{{ team.location }}</td>
+                </tr>
+                <tr>
+                    <th scope="col">Contact</th>
+                    <td>{{ team.contact.username }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    {% if events.count > 0 %}
+        <h2>Participating Events ({{ events.count }})</h2>
+        <div class="row row-cols-1 row-cols-md-5 g-3" >
+            {% for event in events %}
+                <div class="col">
+                    <div class="card h-100">
+                        <h5 class="card-title m-2 text-center">{{ event.name }} ({{ event.code }})</h5>
+                            <p class="card-text m-2">
+                                <b>Date:</b> {{ event.startDate }} <br>
+                                <b>Teams:</b> {{ event.teams.count }} <br>
+                                <b>Location:</b> {{ event.location }} <br>
+                            </p>
+                        <a href="/event/{{ event.season }}/{{ event.code }}" class="btn btn-primary m-2"><i class="bi bi-calendar-event-fill"></i> Open Event</a>
+                        {% if isAdmin and not event.registrationLocked %}<a href="/request/event/{{ event.id }}/team/{{ team.number }}/drop" class="btn btn-danger m-2"><i class="bi bi-calendar-event-fill"></i> Drop from Event</a>{% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if availableEvents.count > 0 %}
+        <h2>Available Events</h2>
+    <div class="row row-cols-1 row-cols-md-5 g-3" >
+        {% for event in availableEvents %}
+            <div class="col">
+                <div class="card h-100">
+                    <h5 class="card-title m-2 text-center">{{ event.name }} ({{ event.code }})</h5>
+                        <p class="card-text m-2">
+                            <b>Date:</b> {{ event.startDate }} <br>
+                            <b>Teams:</b> {{ event.teams.count }} <br>
+                            <b>Location:</b> {{ event.location }} <br>
+                        </p>
+                    <a href="/request/event/{{ event.id }}/team/{{ team.number }}/register" class="btn btn-success m-2"><i class="bi bi-calendar2-plus-fill"></i> Register for Event</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+{% endblock %}

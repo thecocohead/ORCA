@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %} {{ event.code }} Schedule Generation {% endblock %}
+
+{% block content %}
+    <div class="m-5 text-center">
+        <h1>{{ event.season }}{{ event.code }} Schedule Generation</h1>
+    </div>
+
+    <div class="container my-4">
+        <!-- Step 1: Set Matches Per Team -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="bi bi-1-circle-fill"></i> Set Matches Per Team</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <label for="matchesPerTeam" class="form-label">Matches per Team:</label>
+                        <input type="number" class="form-control" id="matchesPerTeam" value="3" min="1" max="20">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info mb-0" role="alert">
+                            <strong>Teams Registered:</strong> {{ teams.count }}<br>
+                            <strong>Required Matches:</strong> <span id="requiredMatches">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Create Match Blocks -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="bi bi-2-circle-fill"></i> Create Match Blocks</h4>
+            </div>
+            <div class="card-body">
+                <form id="blockForm">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="blockStartTime" class="form-label">Start Time:</label>
+                            <input type="datetime-local" class="form-control" id="blockStartTime" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="blockMatchCount" class="form-label">Number of Matches:</label>
+                            <input type="number" class="form-control" id="blockMatchCount" value="10" min="1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="blockTimeBetween" class="form-label">Time Between (min):</label>
+                            <input type="number" class="form-control" id="blockTimeBetween" value="5" min="1" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle"></i> Add Block
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Match Blocks List -->
+                <div class="mt-4">
+                    <h5>Match Blocks:</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Start Time</th>
+                                    <th>Matches</th>
+                                    <th>Time Between</th>
+                                    <th>End Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matchBlocksList">
+                                {% for block in matchBlocks %}
+                                <tr data-block-id="{{ block.id }}">
+                                    <td>{{ block.startTime|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ block.matchCount }}</td>
+                                    <td>{{ block.timeBetweenMatches }} min</td>
+                                    <td>{{ block.get_end_time|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger delete-block" data-block-id="{{ block.id }}">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr id="noBlocksRow">
+                                    <td colspan="5" class="text-center text-muted">No match blocks created yet</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-success mt-3" role="alert">
+                        <strong>Total Match Capacity:</strong> <span id="totalCapacity">{{ totalCapacity|default:0 }}</span> matches
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Generate Schedule -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="bi bi-3-circle-fill"></i> Generate Schedule</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="d-flex align-items-end">
+                        <button type="button" class="btn btn-success w-100" id="generateScheduleBtn" disabled>
+                            <i class="bi bi-lightning-fill"></i> Generate Schedule
+                        </button>
+                    </div>
+                </div>
+                <div id="generateMessage" class="alert mt-3" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="card mb-4" id="previewCard" style="display: none;">
+            <div class="card-header">
+                <h4><i class="bi bi-eye-fill"></i> Schedule Preview</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Match #</th>
+                                <th>Scheduled Time</th>
+                                <th>Red Alliance</th>
+                                <th>Blue Alliance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedulePreview">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const teamsCount = {{ teams.count }};
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // Update required matches calculation
+        function updateRequiredMatches() {
+            const matchesPerTeam = parseInt(document.getElementById('matchesPerTeam').value) || 0;
+            const requiredMatches = Math.floor((teamsCount * matchesPerTeam) / 4);
+            document.getElementById('requiredMatches').textContent = requiredMatches;
+            updateGenerateButton();
+        }
+
+        // Update total capacity
+        function updateTotalCapacity() {
+            let total = 0;
+            document.querySelectorAll('#matchBlocksList tr[data-block-id]').forEach(row => {
+                const matchCount = parseInt(row.cells[1].textContent);
+                total += matchCount;
+            });
+            document.getElementById('totalCapacity').textContent = total;
+            updateGenerateButton();
+        }
+
+        // Enable/disable generate button
+        function updateGenerateButton() {
+            const requiredMatches = parseInt(document.getElementById('requiredMatches').textContent);
+            const totalCapacity = parseInt(document.getElementById('totalCapacity').textContent);
+            const generateBtn = document.getElementById('generateScheduleBtn');
+
+            if (totalCapacity >= requiredMatches && requiredMatches > 0) {
+                generateBtn.disabled = false;
+            } else {
+                generateBtn.disabled = true;
+            }
+        }
+
+                    // Add match block
+            document.getElementById('blockForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                formData.append('startTime', document.getElementById('blockStartTime').value);
+                formData.append('matchCount', document.getElementById('blockMatchCount').value);
+                formData.append('timeBetween', document.getElementById('blockTimeBetween').value);
+
+                try {
+                    const response = await fetch('add-block', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    // Check if response is OK
+                    if (!response.ok) {
+                        const text = await response.text();
+                        console.error('Response not OK:', response.status, text);
+                        alert('Error: Server returned ' + response.status + '. Check console for details.');
+                        return;
+                    }
+
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        const text = await response.text();
+                        console.error('Response is not JSON:', text);
+                        alert('Error: Server did not return JSON. Check console for details.');
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Remove "no blocks" row if it exists
+                        const noBlocksRow = document.getElementById('noBlocksRow');
+                        if (noBlocksRow) {
+                            noBlocksRow.remove();
+                        }
+
+                        // Add new row
+                        const tbody = document.getElementById('matchBlocksList');
+                        const row = tbody.insertRow();
+                        row.setAttribute('data-block-id', data.block.id);
+                        row.innerHTML = `
+                            <td>${data.block.startTime}</td>
+                            <td>${data.block.matchCount}</td>
+                            <td>${data.block.timeBetween} min</td>
+                            <td>${data.block.endTime}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger delete-block" data-block-id="${data.block.id}">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td>
+                        `;
+
+                        // Reset form
+                        document.getElementById('blockForm').reset();
+
+                        updateTotalCapacity();
+                    } else {
+                        console.error('Error from server:', data);
+                        alert('Error adding block: ' + data.error + (data.traceback ? '\n\nCheck console for traceback' : ''));
+                        if (data.traceback) {
+                            console.error('Traceback:', data.traceback);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Exception:', error);
+                    alert('Error adding block: ' + error);
+                }
+            });
+
+        // Delete match block
+        document.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('delete-block') || e.target.parentElement.classList.contains('delete-block')) {
+                const button = e.target.classList.contains('delete-block') ? e.target : e.target.parentElement;
+                const blockId = button.getAttribute('data-block-id');
+
+                if (!confirm('Are you sure you want to delete this match block?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`delete-block/${blockId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Remove row
+                        const row = document.querySelector(`tr[data-block-id="${blockId}"]`);
+                        row.remove();
+
+                        // Check if we need to add "no blocks" row
+                        const tbody = document.getElementById('matchBlocksList');
+                        if (tbody.children.length === 0) {
+                            const row = tbody.insertRow();
+                            row.id = 'noBlocksRow';
+                            row.innerHTML = '<td colspan="5" class="text-center text-muted">No match blocks created yet</td>';
+                        }
+
+                        updateTotalCapacity();
+                    } else {
+                        alert('Error deleting block: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('Error deleting block: ' + error);
+                }
+            }
+        });
+
+            // Generate schedule
+            document.getElementById('generateScheduleBtn').addEventListener('click', async () => {
+                const btn = document.getElementById('generateScheduleBtn');
+                const messageDiv = document.getElementById('generateMessage');
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                formData.append('matchesPerTeam', document.getElementById('matchesPerTeam').value);
+
+                try {
+                    const response = await fetch('generate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    messageDiv.className = 'alert alert-success mt-3';
+                    messageDiv.textContent = data.message;
+                    messageDiv.style.display = 'block';
+
+                    // Reload page to show generated matches
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    messageDiv.className = 'alert alert-danger mt-3';
+                    messageDiv.textContent = 'Error: ' + data.error;
+                    messageDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-lightning-fill"></i> Generate Schedule';
+                }
+            } catch (error) {
+                messageDiv.className = 'alert alert-danger mt-3';
+                messageDiv.textContent = 'Error: ' + error;
+                messageDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lightning-fill"></i> Generate Schedule';
+            }
+        });
+
+        // Initialize
+        document.getElementById('matchesPerTeam').addEventListener('input', updateRequiredMatches);
+        updateRequiredMatches();
+        updateTotalCapacity();
+    </script>
+{% endblock %}

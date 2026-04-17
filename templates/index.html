@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %} Index {% endblock %}
+
+
+{% block content %}
+    {% if authenticated %}
+    <div class="m-5 text-center">
+        <h1>Welcome to ORCA, {{ username }}</h1>
+    </div>
+    {% if events.count > 0 %}
+        <div class="m-3">
+            <h2>My Events</h2>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-5 g-3" >
+            {% for event in events %}
+                <div class="col">
+                    <div class="card h-100">
+                        <h5 class="card-title m-2 text-center">{{ event.name }} ({{ event.code }})</h5>
+                            <p class="card-text m-2"><b>Date:</b> {{ event.startDate }} <br> <b>Teams:</b> {{ event.teams.count }}<br><b>Role:</b> {{ event.reason }}</p>
+                        <a href="/event/{{ event.season }}/{{ event.code }}" class="btn btn-primary m-2"><i class="bi bi-calendar-event-fill"></i> Open Event</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if teams.count > 0 %}
+        <div class="m-3">
+            <h2>My Teams</h2>
+        </div>
+        <div class="row row-cols-1 row-cols-md-5 g-3">
+            {% for team in teams %}
+                <div class="col">
+                    <div class="card h-100">
+                        <h5 class="card-title m-2 text-center">{{ team.name }} ({{ team.number }})</h5>
+                        <p class="card-text m-2"><b>Events:</b> {{ team.event_teams.count }}</p>
+                        <a href="/team/{{ team.number }}" class="btn btn-primary m-2"><i class="bi bi-people-fill"></i> Open Team</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div class="m-3">
+            <h2>Actions</h2>
+    </div>
+    <div class="row row-cols-1 row-cols-md-5 g-3">
+        <div class="col">
+            <div class="card h-100">
+                <h5 class="card-title m-2 text-center">Create an Event Request</h5>
+                <p class="card-text m-2">Intrested in running an event? Create a request here.</p>
+                <a href="/team/{{ team.number }}" class="btn btn-primary m-2"><i class="bi bi-calendar-plus-fill"></i> New Event</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <h5 class="card-title m-2 text-center">Create a Team</h5>
+                <p class="card-text m-2">Starting your own team? Create a team here.</p>
+                <a href="/request/team/" class="btn btn-primary m-2"><i class="bi bi-person-fill-add"></i> New Team</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <div class="m-5 text-center">
+            <h1>Welcome to ORCA</h1>
+        </div>
+    {% endif %}
+    <div class="m-3">
+            <h2>Links</h2>
+        </div>
+    <div class="row row-cols-1 row-cols-md-2 g-3 row-cols-lg-5">
+        <div class="col">
+            <div class="card h-100 border-0">
+                <a href="/events/" class="btn btn-primary m-2"><i class="bi bi-calendar-fill"></i> All Events</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-0">
+                <a href="/teams/" class="btn btn-primary m-2"><i class="bi bi-people-fill"></i> All Teams</a>
+            </div>
+        </div>
+        {% if authenticated %}
+            <div class="col">
+                <div class="card h-100 p-2 border-0">
+                    <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-person-fill-dash"></i> Log Out</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="col">
+                <div class="card h-100 border-0">
+                    <a href="/accounts/signup/" class="btn btn-primary m-2"><i class="bi bi-person-fill-add"></i> Signup</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 border-0">
+                    <a href="/accounts/login/" class="btn btn-primary m-2"><i class="bi bi-person-badge-fill"></i> Login</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
