@@ -122,7 +122,7 @@ def teams(request):
 
 def team(request, team):
     data = {}
-    team = Team.objects.get(number=team)
+    team = Team.objects.get(id=team)
     events = team.event_teams.all().order_by('startDate')
     if request.user.is_authenticated and request.user == team.contact:
         data['availableEvents'] = Event.objects.exclude(teams=team).exclude(registrationLocked=True).order_by('startDate')
@@ -148,14 +148,14 @@ def teamRequest(request):
             newTeam = data['form'].save(commit=False)
             newTeam.contact = request.user
             newTeam.save()
-            return HttpResponseRedirect("/team/" + str(newTeam.number))
+            return HttpResponseRedirect("/team/" + str(newTeam.id))
         else:
             return render(request, template_name="teamrequest.html", context=data)
 
 @login_required(login_url="/accounts/login/")
 def eventRequest(request, id, team, action):
     event = Event.objects.get(pk=id)
-    team = Team.objects.get(number=team)
+    team = Team.objects.get(id=team)
     if request.user != team.contact:
         return HttpResponseNotAllowed("You are not the team admin")
     if event.registrationLocked:
@@ -167,7 +167,7 @@ def eventRequest(request, id, team, action):
     elif action == "drop":
         event.teams.remove(team)
         event.save()
-        return HttpResponseRedirect("/team/" + str(team.number))
+        return HttpResponseRedirect("/team/" + str(team.id))
     else:
         return HttpResponseBadRequest("Invalid Request")
 

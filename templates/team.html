@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %} Team {{ team.number }} {% endblock %}
+{% block title %} {{ team }} {% endblock %}
 
 {% block content %}
     <div class="text-center m-5">
-        <h1>Team {{ team.number }}</h1>
+        <h1> {{ team }}</h1>
     </div>
     <div class="">
         <div>
@@ -37,7 +37,7 @@
                                 <b>Location:</b> {{ event.location }} <br>
                             </p>
                         <a href="/event/{{ event.season }}/{{ event.code }}" class="btn btn-primary m-2"><i class="bi bi-calendar-event-fill"></i> Open Event</a>
-                        {% if isAdmin and not event.registrationLocked %}<a href="/request/event/{{ event.id }}/team/{{ team.number }}/drop" class="btn btn-danger m-2"><i class="bi bi-calendar-event-fill"></i> Drop from Event</a>{% endif %}
+                        {% if isAdmin and not event.registrationLocked %}<a href="/request/event/{{ event.id }}/team/{{ team.id }}/drop" class="btn btn-danger m-2"><i class="bi bi-calendar-event-fill"></i> Drop from Event</a>{% endif %}
                     </div>
                 </div>
             {% endfor %}
@@ -56,7 +56,7 @@
                             <b>Teams:</b> {{ event.teams.count }} <br>
                             <b>Location:</b> {{ event.location }} <br>
                         </p>
-                    <a href="/request/event/{{ event.id }}/team/{{ team.number }}/register" class="btn btn-success m-2"><i class="bi bi-calendar2-plus-fill"></i> Register for Event</a>
+                    <a href="/request/event/{{ event.id }}/team/{{ team.id }}/register" class="btn btn-success m-2"><i class="bi bi-calendar2-plus-fill"></i> Register for Event</a>
                 </div>
             </div>
         {% endfor %}
