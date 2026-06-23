@@ -9,7 +9,7 @@
 {% for team in teams %}
     <div class="col">
         <div class="card h-100">
-            <h5 class="card-title m-2 text-center">{{ team.name }} ({{ team.number }})</h5>
+            <h5 class="card-title m-2 text-center">{{ team }}</h5>
                 <p class="card-text m-2">
                     <b>Location:</b> {{ team.location }} <br>
                     <b>Events:</b> {{ team.event_teams.count }} <br>
